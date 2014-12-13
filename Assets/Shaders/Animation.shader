@@ -1,6 +1,7 @@
 ﻿Shader "Custom/Animation" {
 	Properties {
 		_MainTex ("Base (RGB)", 2D) = "white" {}
+		_Color ("Color", Color) = (1,1,1,1)
 	}
 	SubShader {
 		Tags { "Queue"="Transparent" "IgnoreProjector"="True" }
@@ -13,6 +14,7 @@
 		#include "UnityCG.cginc"
 
 		sampler2D _MainTex;
+		float4 _Color;
 
 		uniform float _TimeElapsed;
 		uniform float _FrameCountWidth;
@@ -30,13 +32,13 @@
             float2 uv = IN.uv_MainTex;
 
             uv.x /= _FrameCountWidth;
-            uv.x += (1.0 / _FrameCountWidth) * fmod(_FrameIndex, _FrameCountWidth);
+            uv.x += (fmod(_FrameIndex, _FrameCountWidth) / _FrameCountWidth);
 
             uv.y /= _FrameCountHeight;
             uv.y += (1.0 / _FrameCountHeight) * floor(_FrameIndex / _FrameCountWidth);
 
 			half4 c = tex2D (_MainTex, uv);
-			o.Emission = c.rgb;
+			o.Emission = c.rgb * _Color.rgb;
 			o.Alpha = c.a;
 		}
 

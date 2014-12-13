@@ -8,12 +8,15 @@ public class Controls : MonoBehaviour
 
 	private SpriteCollider[] objects;
 	private GameObject arm;
+	private GameObject hand;
 	private GameObject[] fingers;
 	private SpriteCollider[] nerves;
 
+	private Text textComponent;
+
 	private GameObject background;
 	private Sprite backgroundSprite;
-	private float parallaxSpeed = 1000f;
+	private float parallaxSpeed = 2000f;
 
 	private bool modeSelection = true;
 
@@ -28,28 +31,54 @@ public class Controls : MonoBehaviour
 	private float cursorAnimStart = 0f;
 	private float cursorAnimDelay = 0.2f;
 
+	private float armAnimStart = 0f;
+	private float armAnimEnd = 0f;
+	private float armAnimDelay = 3f;
+	private float armWidth = 800f;
+
+	private bool won = false;
+
 	// Level Design
 	private int selectedLevel = 0;
 	private int[] levelFingers = new int[] { 1, 1, 1, 1, 1 };
 	private int[,] levels = new int[,] { { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 } };
+	private GameObject[] levelScenes;
+	private string[] levelTexts = new string[] { "", "", "", "Shifoumi" };
 
 	void ShowSceneSelection ()
 	{
 		arm.SetActive(false);
 		background.SetActive(true);
 		modeSelection = true;
+
+		for (int i = 0; i < levelScenes.Length; ++i)
+		{
+			levelScenes[i].SetActive(false);
+		}
 	}
 
 	void ShowSceneAction ()
 	{
+		Vector3 armPosition = arm.transform.position;
+		armPosition.x = -armWidth;
+		arm.transform.position = armPosition;
 		arm.SetActive(true);
+		armAnimStart = Time.time;
+
+		won = false;
+
 		background.SetActive(false);
+		levelScenes[selectedLevel].SetActive(true);
+
+		textComponent.SetupText(levelTexts[selectedLevel]);
+
 		modeSelection = false;
 		for (int i = 0; i < 5; ++i)
 		{
 			levelFingers[i] = 1;
 			fingers[i].GetComponent<SpriteAnimation>().Open();
 		}
+
 	}
 
 	bool CheckVictory ()
@@ -68,15 +97,23 @@ public class Controls : MonoBehaviour
 
 	void Start () 
 	{
+		// 
+		textComponent = GetComponent<Text>();
+		textComponent.SetupText("Coucou");
+
 		//
-		objects = new SpriteCollider[1];
-		for (int i = 0; i < 1; ++i)
+		levelScenes = new GameObject[4];
+		objects = new SpriteCollider[4];
+		for (int i = 0; i < 4; ++i)
 		{
+			levelScenes[i] = GameObject.Find("Level"+(i+1));
+			levelScenes[i].SetActive(false);
 			objects[i] = GameObject.Find("Object"+(i+1)).GetComponent<SpriteCollider>();
 		}
 
 		// 
 		arm = GameObject.Find("Arm");
+		hand = GameObject.Find("Hand");
 		nerves = new SpriteCollider[5];
 		fingers = new GameObject[5];
 		for (int i = 0; i < 5; ++i)
@@ -158,6 +195,26 @@ public class Controls : MonoBehaviour
 		}
 		else 
 		{
+			// Arm animation
+
+			if (won)
+			{
+				float ratioHand = (Time.time - armAnimStart) / armAnimDelay;
+				hand.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Sin(ratioHand * 30f) * 20f);
+				if (armAnimStart + armAnimDelay < Time.time)
+				{
+					ShowSceneSelection();
+				}
+			}
+			else
+			{
+				float ratioArm = (Time.time - armAnimStart) / armAnimDelay;
+				ratioArm = Mathf.Clamp(ratioArm, 0f, 1f);
+				Vector3 armPosition = arm.transform.position;
+				armPosition.x = -armWidth * (1f - ratioArm);
+				arm.transform.position = armPosition;
+			}
+
 			// Nerves Collision Test
 			for (int i = 0; i < nerves.Length; ++i)
 			{
@@ -171,7 +228,9 @@ public class Controls : MonoBehaviour
 					levelFingers[i] = 1 - levelFingers[i];
 					if (CheckVictory())
 					{
-						ShowSceneSelection();
+						textComponent.SetupText("Bravo");
+						won = true;
+						armAnimStart = Time.time;
 					}
 
 					cursorAnimStart = Time.time;

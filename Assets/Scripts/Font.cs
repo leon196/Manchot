@@ -10,20 +10,17 @@ public class Font : MonoBehaviour
 	private float frameTime = 0f;
 	private float frameDelay = 1f;
 
-	public float scaleOriginal;
+	public Vector3 scaleOriginal;
 
-	private string[] font = new string[] {"a", "b", "c", "d", "e", "f", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
+	private string[] font = new string[] {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
 
 	void Start () 
 	{
 		renderer.material.SetFloat("_FrameCountWidth", frameCountWidth);
 		renderer.material.SetFloat("_FrameCountHeight", frameCountHeight);
 
-		frameIndex = 0;
-		frameTime = Time.time;
-		renderer.material.SetFloat("_FrameIndex", frameIndex);
-
-		scaleOriginal = transform.localScale.x;
+		scaleOriginal = transform.localScale;
+		transform.localScale = Vector3.zero;
 	}
 
 	int fontIndex (string letter)
@@ -40,7 +37,7 @@ public class Font : MonoBehaviour
 
 	public void SetLetter (string letter)
 	{
-		frameIndex = fontIndex(letter);
+		frameIndex = fontIndex(letter); 
 		frameIndex = (int)Mathf.Clamp(frameIndex, 0, frameCountWidth * frameCountHeight - 1);
 		renderer.material.SetFloat("_FrameIndex", frameIndex);
 

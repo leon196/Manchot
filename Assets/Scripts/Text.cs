@@ -8,13 +8,11 @@ public class Text : MonoBehaviour {
 	private Font[] letters;
 
 	private float startTime;
-	private float textDelay = 5f;
+	private float textDelay = 2f;
 
-	void Start () 
+	void Awake () 
 	{
 		letters = new Font[0];
-
-		SetupText("Coucou");
 	}
 
 
@@ -29,11 +27,11 @@ public class Text : MonoBehaviour {
 
 		for (int i = 0; i < letters.Length; ++i)
 		{
-			float delay = smoothstep(i / (float)letters.Length, 1f, ratio);
+			float delay = smoothstep(i / ((float)letters.Length+1), 1f, ratio);
 			Font letter = letters[i];
 			Vector3 scale = letter.transform.localScale;
-			scale.x = letter.scaleOriginal * Mathf.Sin(delay * 3.1418f);
-			scale.y = letter.scaleOriginal * Mathf.Sin(delay * 3.1418f);
+			scale.x = letter.scaleOriginal.x * Mathf.Sin(delay * 3.1418f);
+			scale.y = letter.scaleOriginal.y * Mathf.Sin(delay * 3.1418f);
 			letter.transform.localScale = scale;
 		}
 	}
@@ -49,13 +47,14 @@ public class Text : MonoBehaviour {
 		//string[] textList = text.Split('');
 		//letters = new Font[textList.Length];
 		letters = new Font[text.Length];
-		float sizeLetter = 96f;
+		float sizeLetter = 128f;
 		float width = text.Length * sizeLetter;
 		for (int i = 0; i < text.Length; ++i)
 		{
 			float x = - width / 2 + sizeLetter * i;
-			letters[i] = Instantiate(textPrefab, new Vector3(x, 0f, -10f), Quaternion.identity) as Font;
-			letters[i].SetLetter(text[i] + "");
+			letters[i] = Instantiate(textPrefab, new Vector3(x, 0f, -20f), Quaternion.identity) as Font;
+			string letter = text[i] + "";
+			letters[i].SetLetter(letter.ToLower());
 		}
 
 		startTime = Time.time;
