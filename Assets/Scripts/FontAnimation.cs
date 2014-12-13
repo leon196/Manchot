@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class SpriteAnimation : MonoBehaviour 
+public class FontAnimation : MonoBehaviour 
 {
 	public int frameCountWidth = 3;
 	public int frameCountHeight = 3;
-	private float frameDelay = 0.02f;
+	private float frameDelay = 0.2f;
 
 	private int frameIndex = 0;
 	private float frameTime = 0f;
@@ -18,6 +18,7 @@ public class SpriteAnimation : MonoBehaviour
 
 		frameIndex = 0;
 		frameTime = Time.time;
+		renderer.material.SetFloat("_FrameIndex", frameIndex);
 	}
 	
 	void Update () 
