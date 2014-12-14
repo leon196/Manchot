@@ -160,12 +160,19 @@ public class Controls : MonoBehaviour
 	void ShowFinalVictory ()
 	{
 		finalVictory.SetActive(true);
-		textComponent.SetupText("amazing");
+		textComponent.SetupText("wooooooow");
+		StartCoroutine(Restart());
+	}
+
+	IEnumerator Restart ()
+	{
+		yield return new WaitForSeconds(7f);
+		Application.LoadLevel(0);
 	}
 
 	void Start () 
 	{
-		Screen.showCursor = false;
+		//Screen.showCursor = false;
 
 		// 
 		textComponent = GetComponent<Text>();
@@ -228,13 +235,18 @@ public class Controls : MonoBehaviour
 	
 	void Update () 
 	{
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			Application.Quit();
+		}
+
 		// Mouse
 		mousePosition = Input.mousePosition;
 		mouseRatio.x = (mousePosition.x / windowWidth - 0.5f);
 		mouseRatio.y = (mousePosition.y / windowHeight - 0.5f);
 		mousePosition.x = mouseRatio.x * orthoSize * 2f * screenRatio;
 		mousePosition.y = mouseRatio.y * orthoSize * 2f;
-		mouseClic = Input.GetMouseButtonDown(0);
+		mouseClic = Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1);
 
 		// Shader
 		Shader.SetGlobalVector("_Mouse", new Vector4(mouseRatio.x, mouseRatio.y, 0f, 0f));
