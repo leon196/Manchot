@@ -35,7 +35,7 @@
             uv.x += (fmod(_FrameIndex, _FrameCountWidth) / _FrameCountWidth);
 
             uv.y /= _FrameCountHeight;
-            uv.y += (1.0 / _FrameCountHeight) * floor(_FrameIndex / _FrameCountWidth);
+            uv.y += (floor(_FrameIndex / _FrameCountWidth) / _FrameCountHeight);
 
 			half4 c = tex2D (_MainTex, uv);
 			o.Emission = c.rgb * _Color.rgb;

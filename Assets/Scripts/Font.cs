@@ -19,7 +19,7 @@ public class Font : MonoBehaviour
 		renderer.material.SetFloat("_FrameCountWidth", frameCountWidth);
 		renderer.material.SetFloat("_FrameCountHeight", frameCountHeight);
 
-		scaleOriginal = transform.localScale;
+		scaleOriginal = new Vector3(150f, 300f, 1f);
 		transform.localScale = Vector3.zero;
 	}
 

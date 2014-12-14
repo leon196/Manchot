@@ -13,6 +13,8 @@ public class Controls : MonoBehaviour
 	private SpriteCollider[] nerves;
 
 	private Text textComponent;
+	private UI uiComponent;
+	private GameObject finalVictory;
 
 	private GameObject background;
 	private Sprite backgroundSprite;
@@ -33,23 +35,50 @@ public class Controls : MonoBehaviour
 
 	private float armAnimStart = 0f;
 	private float armAnimEnd = 0f;
-	private float armAnimDelay = 3f;
+	private float armAnimStartDelay = 1f;
+	private float armAnimEndDelay = 3f;
 	private float armWidth = 800f;
 
+	private bool modeMenu = true;
 	private bool won = false;
+
+	private GameObject backgroundMenu;
+	private SpriteCollider buttonPlay;
 
 	// Level Design
 	private int selectedLevel = 0;
 	private int[] levelFingers = new int[] { 1, 1, 1, 1, 1 };
-	private int[,] levels = new int[,] { { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 } };
+	private int[,] levels = new int[,] { 
+		{ 0, 0, 0, 0, 0 }, 
+		{ 1, 0, 1, 1, 0 }, 
+		{ 0, 1, 0, 0, 1 }, 
+		{ 0, 1, 1, 0, 0 }, 
+		{ 0, 0, 0, 0, 1 }, 
+		{ 1, 0, 0, 0, 1 }
+	};
 	private GameObject[] levelScenes;
-	private string[] levelTexts = new string[] { "", "", "", "Shifoumi" };
+	private string[] levelTexts = new string[] { "Banana", "Piano", "Metal", "Shifoumi", "chocolat", "telephone" };
+	private bool[] levelsDone;
+
+	void ShowMenu ()
+	{
+		modeMenu = true;
+		backgroundMenu.SetActive(true);
+	}
+
+	void ShowGame ()
+	{
+		modeMenu = false;
+		backgroundMenu.SetActive(false);
+	}
 
 	void ShowSceneSelection ()
 	{
 		arm.SetActive(false);
 		background.SetActive(true);
 		modeSelection = true;
+
+		uiComponent.CleanHints();
 
 		for (int i = 0; i < levelScenes.Length; ++i)
 		{
@@ -59,20 +88,41 @@ public class Controls : MonoBehaviour
 
 	void ShowSceneAction ()
 	{
+		// Reset positin & orientation
 		Vector3 armPosition = arm.transform.position;
 		armPosition.x = -armWidth;
 		arm.transform.position = armPosition;
+		hand.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+
+		// Show Arm and animate
 		arm.SetActive(true);
 		armAnimStart = Time.time;
 
+		// Reset Game Logic
 		won = false;
 
+		// Hide Piece
 		background.SetActive(false);
+
+		// Show Level
 		levelScenes[selectedLevel].SetActive(true);
 
+		// Text Level
 		textComponent.SetupText(levelTexts[selectedLevel]);
+		List<float> hihi = new List<float>();
+		for (int i = 0; i < 5; ++i)
+		{
+			if (levels[selectedLevel, i] == 1)
+			{
+				hihi.Add((float)i);
+			}
+		}
+		uiComponent.SetupHints(hihi);
 
+		// Set mode
 		modeSelection = false;
+
+		// Set fingers
 		for (int i = 0; i < 5; ++i)
 		{
 			levelFingers[i] = 1;
@@ -95,20 +145,48 @@ public class Controls : MonoBehaviour
 		return true;
 	}
 
+	bool CheckFinalVictory ()
+	{
+		for (int i = 0; i < levelsDone.Length; ++i)
+		{
+			if (!levelsDone[i])
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	void ShowFinalVictory ()
+	{
+		finalVictory.SetActive(true);
+		textComponent.SetupText("amazing");
+	}
+
 	void Start () 
 	{
+		Screen.showCursor = false;
+
 		// 
 		textComponent = GetComponent<Text>();
-		textComponent.SetupText("Coucou");
+		uiComponent = GetComponent<UI>();
+		finalVictory = GameObject.Find("FinalVictory");
+		finalVictory.SetActive(false);
+
+		backgroundMenu = GameObject.Find("backgroundMenu");
+		buttonPlay = GameObject.Find("jouer").GetComponent<SpriteCollider>();
 
 		//
-		levelScenes = new GameObject[4];
-		objects = new SpriteCollider[4];
-		for (int i = 0; i < 4; ++i)
+		int count = 6;
+		levelScenes = new GameObject[count];
+		objects = new SpriteCollider[count];
+		levelsDone = new bool[count];
+		for (int i = 0; i < count; ++i)
 		{
 			levelScenes[i] = GameObject.Find("Level"+(i+1));
 			levelScenes[i].SetActive(false);
 			objects[i] = GameObject.Find("Object"+(i+1)).GetComponent<SpriteCollider>();
+			levelsDone[i] = false;
 		}
 
 		// 
@@ -169,7 +247,15 @@ public class Controls : MonoBehaviour
 		cursorPosition.y = mousePosition.y;
 		cursor.transform.position = cursorPosition;
 
-		if (modeSelection)
+		if (modeMenu)
+		{
+			bool collision = cursor.collidesWith(buttonPlay);
+			if (mouseClic && collision)
+			{
+				ShowGame();
+			}
+		}
+		else if (modeSelection)
 		{
 			// Background Parallax
 			float velocity = Mathf.Clamp(mouseRatio.x, -1f, 1f);
@@ -186,7 +272,7 @@ public class Controls : MonoBehaviour
 			for (int i = 0; i < objects.Length; ++i)
 			{
 				bool collision = cursor.collidesWith(objects[i]);
-				if (mouseClic && collision)
+				if (mouseClic && collision && !levelsDone[i])
 				{
 					selectedLevel = i;
 					ShowSceneAction();
@@ -199,16 +285,20 @@ public class Controls : MonoBehaviour
 
 			if (won)
 			{
-				float ratioHand = (Time.time - armAnimStart) / armAnimDelay;
-				hand.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Sin(ratioHand * 30f) * 20f);
-				if (armAnimStart + armAnimDelay < Time.time)
+				float ratioHand = (Time.time - armAnimStart) / armAnimEndDelay;
+				hand.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Sin(ratioHand * 30f) * 5f);
+				if (armAnimStart + armAnimEndDelay < Time.time)
 				{
 					ShowSceneSelection();
+					if (CheckFinalVictory())
+					{
+						ShowFinalVictory();
+					}
 				}
 			}
 			else
 			{
-				float ratioArm = (Time.time - armAnimStart) / armAnimDelay;
+				float ratioArm = (Time.time - armAnimStart) / armAnimStartDelay;
 				ratioArm = Mathf.Clamp(ratioArm, 0f, 1f);
 				Vector3 armPosition = arm.transform.position;
 				armPosition.x = -armWidth * (1f - ratioArm);
@@ -226,15 +316,19 @@ public class Controls : MonoBehaviour
 
 					// Game Logic
 					levelFingers[i] = 1 - levelFingers[i];
-					if (CheckVictory())
-					{
-						textComponent.SetupText("Bravo");
-						won = true;
-						armAnimStart = Time.time;
-					}
 
+					// Cursor Anim
 					cursorAnimStart = Time.time;
 				}
+			}
+
+			// Check Victory
+			if (mouseClic && CheckVictory())
+			{
+				textComponent.SetupText("Bravo");
+				won = true;
+				levelsDone[selectedLevel] = true;
+				armAnimStart = Time.time;
 			}
 		}
 	}

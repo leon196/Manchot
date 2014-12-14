@@ -8,7 +8,7 @@ public class Text : MonoBehaviour {
 	private Font[] letters;
 
 	private float startTime;
-	private float textDelay = 2f;
+	private float textDelay = 3f;
 
 	void Awake () 
 	{
@@ -27,7 +27,7 @@ public class Text : MonoBehaviour {
 
 		for (int i = 0; i < letters.Length; ++i)
 		{
-			float delay = smoothstep(i / ((float)letters.Length+1), 1f, ratio);
+			float delay = smoothstep(i*0.5f / ((float)letters.Length), 1f, ratio);
 			Font letter = letters[i];
 			Vector3 scale = letter.transform.localScale;
 			scale.x = letter.scaleOriginal.x * Mathf.Sin(delay * 3.1418f);
@@ -51,8 +51,8 @@ public class Text : MonoBehaviour {
 		float width = text.Length * sizeLetter;
 		for (int i = 0; i < text.Length; ++i)
 		{
-			float x = - width / 2 + sizeLetter * i;
-			letters[i] = Instantiate(textPrefab, new Vector3(x, 0f, -20f), Quaternion.identity) as Font;
+			float x = - width / 2f + sizeLetter * i + sizeLetter/2f;
+			letters[i] = Instantiate(textPrefab, new Vector3(x, 0f, -300f), Quaternion.identity) as Font;
 			string letter = text[i] + "";
 			letters[i].SetLetter(letter.ToLower());
 		}
