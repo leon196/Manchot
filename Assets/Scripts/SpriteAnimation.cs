@@ -19,6 +19,13 @@ public class SpriteAnimation : MonoBehaviour
 		frameIndex = 0;
 		frameTime = Time.time;
 	}
+
+	public void Restart ()
+	{
+		frameIndex = 0;
+		frameTime = Time.time;
+		renderer.material.SetFloat("_FrameIndex", frameIndex);
+	}
 	
 	void Update () 
 	{

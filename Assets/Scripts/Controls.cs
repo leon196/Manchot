@@ -18,7 +18,7 @@ public class Controls : MonoBehaviour
 
 	private GameObject background;
 	private Sprite backgroundSprite;
-	private float parallaxSpeed = 2000f;
+	private float parallaxSpeed = 1000f;
 
 	private bool modeSelection = true;
 
@@ -45,6 +45,10 @@ public class Controls : MonoBehaviour
 	private GameObject backgroundMenu;
 	private SpriteCollider buttonPlay;
 
+	private AudioSource musicMenu;
+	private AudioSource musicGame;
+	private AudioSource musicVictory;
+
 	// Level Design
 	private int selectedLevel = 0;
 	private int[] levelFingers = new int[] { 1, 1, 1, 1, 1 };
@@ -54,22 +58,28 @@ public class Controls : MonoBehaviour
 		{ 0, 1, 0, 0, 1 }, 
 		{ 0, 1, 1, 0, 0 }, 
 		{ 0, 0, 0, 0, 1 }, 
-		{ 1, 0, 0, 0, 1 }
+		{ 1, 0, 0, 0, 1 }, 
+		{ 0, 1, 0, 0, 0 }
 	};
 	private GameObject[] levelScenes;
-	private string[] levelTexts = new string[] { "Banana", "Piano", "Metal", "Shifoumi", "chocolat", "telephone" };
+	private string[] levelTexts = new string[] { "Banana", "Piano", "Metal", "Shifoumi", "chocolat", "telephone", "lampe" };
 	private bool[] levelsDone;
 
 	void ShowMenu ()
 	{
 		modeMenu = true;
 		backgroundMenu.SetActive(true);
+		musicMenu.Play();
+		musicGame.Stop();
+		musicVictory.Stop();
 	}
 
 	void ShowGame ()
 	{
 		modeMenu = false;
 		backgroundMenu.SetActive(false);
+		musicMenu.Stop();
+		musicGame.Play();
 	}
 
 	void ShowSceneSelection ()
@@ -160,19 +170,52 @@ public class Controls : MonoBehaviour
 	void ShowFinalVictory ()
 	{
 		finalVictory.SetActive(true);
+		finalVictory.GetComponentInChildren<SpriteAnimation>().Restart();
 		textComponent.SetupText("wooooooow");
+		musicGame.Stop();
+		musicVictory.Play();
 		StartCoroutine(Restart());
 	}
 
 	IEnumerator Restart ()
 	{
-		yield return new WaitForSeconds(7f);
-		Application.LoadLevel(0);
+		yield return new WaitForSeconds(21f);
+		
+		won = false;
+
+		int count = 7;
+		levelsDone = new bool[count];
+		for (int i = 0; i < levelsDone.Length; ++i)
+		{
+			levelScenes[i].SetActive(false);
+			levelsDone[i] = false;
+		}
+		finalVictory.SetActive(false);
+		musicMenu.Play();
+		musicVictory.Stop();
+		mousePosition = new Vector3();
+		mouseRatio = new Vector2();
+		mouseClic = false;
+
+		// Timing
+		cursorAnimStart = Time.time;
+		cursorAnimDelay = 0.5f;
+
+		ShowMenu();
 	}
 
 	void Start () 
 	{
 		//Screen.showCursor = false;
+		musicMenu = GameObject.Find("MusiqueMenu").GetComponent<AudioSource>();
+		musicGame = GameObject.Find("MusiqueGame").GetComponent<AudioSource>();
+		musicVictory = GameObject.Find("MusiqueVictory").GetComponent<AudioSource>();
+
+		musicMenu.Play();
+
+		// 1 : ouvrir en continu
+		// 2 : fermer (en continu)
+		// 5 : impulsion 200ms
 
 		// 
 		textComponent = GetComponent<Text>();
@@ -184,7 +227,7 @@ public class Controls : MonoBehaviour
 		buttonPlay = GameObject.Find("jouer").GetComponent<SpriteCollider>();
 
 		//
-		int count = 6;
+		int count = 7;
 		levelScenes = new GameObject[count];
 		objects = new SpriteCollider[count];
 		levelsDone = new bool[count];
@@ -335,12 +378,24 @@ public class Controls : MonoBehaviour
 			}
 
 			// Check Victory
-			if (mouseClic && CheckVictory())
+			if (!won && mouseClic && CheckVictory())
 			{
 				textComponent.SetupText("Bravo");
 				won = true;
 				levelsDone[selectedLevel] = true;
 				armAnimStart = Time.time;
+
+				AudioSource levelSoundReward = levelScenes[selectedLevel].GetComponentInChildren<AudioSource>();
+				if (levelSoundReward) {
+					levelSoundReward.Play();
+				}
+
+				//
+				if (GetComponent<network>().detected)
+				{
+					SendMessage("SendSerialMessage", "5");
+				}
+
 			}
 		}
 	}
