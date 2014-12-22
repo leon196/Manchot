@@ -2,7 +2,7 @@
 //In Edit->Project Settings-> Player: set Api Compability level to .Net 2.0
 //In the editor check that you enabled "useSerial" by ticking it.
 //Connect an arduino to your serial port (make sure the arduino has code in it)
-
+/*
 using UnityEngine;
 using System.Collections;
 using System.Net.Sockets;
@@ -93,3 +93,4 @@ public class network : MonoBehaviour {
 	}
 
 }
+*/

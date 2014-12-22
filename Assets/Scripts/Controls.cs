@@ -391,10 +391,10 @@ public class Controls : MonoBehaviour
 				}
 
 				//
-				if (GetComponent<network>().detected)
+				/*if (GetComponent<network>().detected)
 				{
 					SendMessage("SendSerialMessage", "5");
-				}
+				}*/
 
 			}
 		}
