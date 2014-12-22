@@ -6,6 +6,9 @@ public class Controls : MonoBehaviour
 {
 	public SpriteCollider cursor;
 
+	private GameObject infoTxt; 
+	private GameObject infoImg;
+
 	private SpriteCollider[] objects;
 	private GameObject arm;
 	private GameObject hand;
@@ -21,6 +24,10 @@ public class Controls : MonoBehaviour
 	private float parallaxSpeed = 1000f;
 
 	private bool modeSelection = true;
+	private bool modeTuto = false;
+
+	private float modeTutoTimeStart = 0f;
+	private float modeTutoTimeDelay = 3f;
 
 	private Vector3 mousePosition;
 	private Vector2 mouseRatio;
@@ -68,15 +75,30 @@ public class Controls : MonoBehaviour
 	void ShowMenu ()
 	{
 		modeMenu = true;
+		modeTuto = false;
 		backgroundMenu.SetActive(true);
 		musicMenu.Play();
 		musicGame.Stop();
 		musicVictory.Stop();
+		infoImg.SetActive(false);
+		infoTxt.SetActive(false);
+	}
+
+	void ShowTuto ()
+	{
+		modeMenu = false;
+		modeTuto = true;
+		infoImg.SetActive(true);
+		infoTxt.SetActive(true);
+		modeTutoTimeStart = Time.time;
 	}
 
 	void ShowGame ()
 	{
+		infoImg.SetActive(false);
+		infoTxt.SetActive(false);
 		modeMenu = false;
+		modeTuto = false;
 		backgroundMenu.SetActive(false);
 		musicMenu.Stop();
 		musicGame.Play();
@@ -84,9 +106,16 @@ public class Controls : MonoBehaviour
 
 	void ShowSceneSelection ()
 	{
+		infoImg.SetActive(false);
+		infoTxt.SetActive(false);
 		arm.SetActive(false);
+		backgroundMenu.SetActive(false);
 		background.SetActive(true);
 		modeSelection = true;
+		modeMenu = false;
+		modeTuto = false;
+		musicMenu.Stop();
+		musicGame.Play();
 
 		uiComponent.CleanHints();
 
@@ -223,6 +252,10 @@ public class Controls : MonoBehaviour
 		finalVictory = GameObject.Find("FinalVictory");
 		finalVictory.SetActive(false);
 
+		//
+		infoTxt = GameObject.Find("InfoTxt");
+		infoImg = GameObject.Find("InfoImg");
+
 		backgroundMenu = GameObject.Find("backgroundMenu");
 		buttonPlay = GameObject.Find("jouer").GetComponent<SpriteCollider>();
 
@@ -273,7 +306,7 @@ public class Controls : MonoBehaviour
 		cursorAnimDelay = 0.5f;
 
 		// Start Game
-		ShowSceneSelection();
+		ShowMenu();
 	}
 	
 	void Update () 
@@ -307,7 +340,14 @@ public class Controls : MonoBehaviour
 			bool collision = cursor.collidesWith(buttonPlay);
 			if (mouseClic && collision)
 			{
-				ShowGame();
+				ShowTuto();
+			}
+		}
+		else if (modeTuto)
+		{
+			if (mouseClic && modeTutoTimeStart + modeTutoTimeDelay < Time.time)
+			{
+				ShowSceneSelection();
 			}
 		}
 		else if (modeSelection)
